@@ -18,27 +18,24 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
       - name: Extract data from JSON
         run: |
           mkdir out
           cat EXD_supply.json | jq '{"circulating-supply":.["circulating-supply"]}' > out/circulating-supply
           cat EXD_supply.json | jq '{"max-supply":.["max-supply"]}' > out/max-supply
           cat EXD_supply.json | jq '{"total-supply":.["total-supply"]}' > out/total-supply
-      - name: Sync files with S3 bucket
-        uses: jakejarvis/s3-sync-action@master
+      - name: Set up S3cmd cli tool
+        uses: s3-actions/s3cmd@v1.4.0
         with:
-          args: --acl public-read --follow-symlinks --delete
-        env:
-          AWS_S3_BUCKET: ${{ secrets.S3_BUCKET }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
-          AWS_S3_ENDPOINT: ${{ secrets.S3_ENDPOINT }}
-          AWS_REGION: "fr-par"
-          SOURCE_DIR: "out"
+          provider: scaleway
+          region: "fr-par"
+          access_key: ${{ secrets.S3_ACCESS_KEY_ID }}
+          secret_key: ${{ secrets.S3_SECRET_ACCESS_KEY }}
+      - name: Upload files
+        run: |
+          s3cmd put out/circulating-supply --mime-type 'application/json' --acl-public s3://${{ secrets.S3_BUCKET }}/circulating-supply
+          s3cmd put out/max-supply --mime-type 'application/json' --acl-public s3://${{ secrets.S3_BUCKET }}/max-supply
+          s3cmd put out/total-supply --mime-type 'application/json' --acl-public s3://${{ secrets.S3_BUCKET }}/total-supply
       - name: Send a message to slack if CI has failed
         if: ${{ failure() }}
         uses: slackapi/slack-github-action@v1.18.0
