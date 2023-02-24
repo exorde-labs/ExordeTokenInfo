@@ -21,9 +21,9 @@ jobs:
       - name: Extract data from JSON
         run: |
           mkdir out
-          cat EXD_supply.json | jq '{"circulating-supply":.["circulating-supply"]}' > out/circulating-supply
-          cat EXD_supply.json | jq '{"max-supply":.["max-supply"]}' > out/max-supply
-          cat EXD_supply.json | jq '{"total-supply":.["total-supply"]}' > out/total-supply
+          cat EXD_supply.json | jq '.["circulating-supply"]' > out/circulating-supply
+          cat EXD_supply.json | jq '.["max-supply"]' > out/max-supply
+          cat EXD_supply.json | jq '.["total-supply"]' > out/total-supply
       - name: Set up S3cmd cli tool
         uses: s3-actions/s3cmd@v1.4.0
         with:
@@ -33,9 +33,9 @@ jobs:
           secret_key: ${{ secrets.S3_SECRET_ACCESS_KEY }}
       - name: Upload files
         run: |
-          s3cmd put out/circulating-supply --mime-type 'application/json' --acl-public s3://${{ secrets.S3_BUCKET }}/circulating-supply
-          s3cmd put out/max-supply --mime-type 'application/json' --acl-public s3://${{ secrets.S3_BUCKET }}/max-supply
-          s3cmd put out/total-supply --mime-type 'application/json' --acl-public s3://${{ secrets.S3_BUCKET }}/total-supply
+          s3cmd put out/circulating-supply --mime-type 'text/plain' --acl-public s3://${{ secrets.S3_BUCKET }}/circulating-supply
+          s3cmd put out/max-supply --mime-type 'text/plain' --acl-public s3://${{ secrets.S3_BUCKET }}/max-supply
+          s3cmd put out/total-supply --mime-type 'text/plain' --acl-public s3://${{ secrets.S3_BUCKET }}/total-supply
       - name: Send a message to slack if CI has failed
         if: ${{ failure() }}
         uses: slackapi/slack-github-action@v1.18.0
