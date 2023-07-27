@@ -25,7 +25,7 @@ jobs:
           cat EXD_supply.json | jq '.["max-supply"]' > out/max-supply
           cat EXD_supply.json | jq '.["total-supply"]' > out/total-supply
       - name: Set up S3cmd cli tool
-        uses: s3-actions/s3cmd@v1.4.0
+        uses: s3-actions/s3cmd@v1.5.0
         with:
           provider: scaleway
           region: "fr-par"
@@ -38,7 +38,7 @@ jobs:
           s3cmd put out/total-supply --mime-type 'text/plain' --acl-public s3://${{ secrets.S3_BUCKET }}/total-supply
       - name: Send a message to slack if CI has failed
         if: ${{ failure() }}
-        uses: slackapi/slack-github-action@v1.18.0
+        uses: slackapi/slack-github-action@v1.24.0
         with:
           payload: |
             {
